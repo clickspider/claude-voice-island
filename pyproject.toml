@@ -5,7 +5,7 @@ description = "Push-to-talk voice control for Claude Code, living in the MacBook
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "Daniel Frey" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = ["claude", "voice", "macos", "notch", "speech", "mcp"]
 
 [project.urls]
@@ -14,7 +14,7 @@ Issues = "https://github.com/clickspider/claude-voice-island/issues"
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [

@@ -9,12 +9,12 @@ cd "$ROOT"
 PYTHON="${PYTHON:-python3}"
 
 if ! command -v "$PYTHON" >/dev/null 2>&1; then
-    echo "python3 was not found. Install Python 3.10 or newer." >&2
+    echo "python3 was not found. Install Python 3.11 or newer." >&2
     exit 1
 fi
 
 version="$("$PYTHON" -c 'import sys; print("%d.%d" % sys.version_info[:2])')"
-required="3.10"
+required="3.11"
 if [ "$(printf '%s\n%s\n' "$required" "$version" | sort -V | head -1)" != "$required" ]; then
     echo "Python $version found, but this needs $required or newer." >&2
     exit 1

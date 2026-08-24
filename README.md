@@ -58,7 +58,7 @@ stream now waits for the previous one to finish closing before it opens.
 
 ## Install
 
-You need macOS 13 or newer, Python 3.10 or newer, and
+You need macOS 13 or newer, Python 3.11 or newer, and
 [Claude Code](https://claude.com/claude-code) installed and signed in.
 
 ```bash
