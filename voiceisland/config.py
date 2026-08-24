@@ -32,7 +32,10 @@ DEFAULTS: dict[str, Any] = {
     "tts_engine": "edge",          # "edge" (Microsoft, better) or "say" (offline)
     "whisper_model": "base.en",    # "small.en" is more accurate and slower
     "permissions": "prompt",       # "prompt" | "auto" | "ask", see claude.py
-    "safe_tools": ["Read", "Glob", "Grep", "TodoWrite"],  # run without asking
+    # Tools allowed to run without a dialog. Searching is on the list because a
+    # single question triggers a lot of it; reading is not, because a file path
+    # is worth seeing before the file is opened. See SECURITY.md.
+    "safe_tools": ["Glob", "Grep", "TodoWrite"],
     "narrate": False,              # speak a short phrase for each action taken
     "ptt": "off",                  # push-to-talk key: off | option | control | command
     "launch_at_login": False,

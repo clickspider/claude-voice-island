@@ -168,7 +168,7 @@ only in the file:
 | Key | Default | What it does |
 |---|---|---|
 | `whisper_model` | `base.en` | `small.en` is more accurate and slower |
-| `safe_tools` | `Read, Glob, Grep, TodoWrite` | Tools allowed to run without a dialog |
+| `safe_tools` | `Glob, Grep, TodoWrite` | Tools allowed to run without a dialog. `Read` is not on it on purpose, see [SECURITY.md](SECURITY.md) |
 | `log_transcripts` | `false` | Write what you said and what Claude replied to the log |
 
 ## Limits

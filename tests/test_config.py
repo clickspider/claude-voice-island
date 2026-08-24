@@ -9,7 +9,13 @@ def test_defaults_when_nothing_is_stored():
     settings = config.load()
     assert settings["permissions"] == "prompt"
     assert settings["log_transcripts"] is False
-    assert settings["safe_tools"] == ["Read", "Glob", "Grep", "TodoWrite"]
+    assert settings["safe_tools"] == ["Glob", "Grep", "TodoWrite"]
+
+
+def test_reading_a_file_is_not_pre_approved():
+    # Read opens any file the user can open, including keys and .env files, so
+    # it has to go through a dialog that shows the path.
+    assert "Read" not in config.load()["safe_tools"]
 
 
 def test_save_merges_instead_of_replacing():

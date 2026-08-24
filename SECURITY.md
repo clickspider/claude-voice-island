@@ -60,21 +60,27 @@ sitting.
 `safe_tools` in the config lists tools that run without asking. The default is:
 
 ```json
-["Read", "Glob", "Grep", "TodoWrite"]
+["Glob", "Grep", "TodoWrite"]
 ```
 
-These are read-only, and prompting for each one makes the app unusable: a single
-question can read a dozen files. That trade is real, and worth being clear
-about. `Read` can open any file the running user can open, including private
-keys and `.env` files, and it is on this list.
+Those three tell you a file exists or that a string appears in it. They do not
+hand over contents, and one spoken question triggers enough of them that
+prompting for each would make the app unusable.
 
-If that is not the trade you want, remove it:
+`Read` is deliberately not on that list, even though it is read-only in the
+sense that it changes nothing. It opens any file the running user can open,
+which includes `~/.ssh/id_rsa`, `.env`, and every password sitting in a note
+somewhere. A file being read is worth one dialog with the path in it.
+
+If you would rather have fewer prompts and you know what you are pointing this
+at, add it back:
 
 ```json
-"safe_tools": ["Glob", "Grep", "TodoWrite"]
+"safe_tools": ["Read", "Glob", "Grep", "TodoWrite"]
 ```
 
-Set it to `[]` and everything asks. Nothing else in the app changes.
+Set it to `[]` and everything asks, including searches. Nothing else in the app
+changes either way.
 
 ## What is not protected against
 
