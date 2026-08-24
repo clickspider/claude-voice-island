@@ -1,5 +1,8 @@
 # Claude Voice Island
 
+[![CI](https://github.com/clickspider/claude-voice-island/actions/workflows/ci.yml/badge.svg)](https://github.com/clickspider/claude-voice-island/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
+
 Hold the notch. Talk. Let go. Claude answers out loud.
 
 It's a push-to-talk button that lives inside the black cutout at the top of a
