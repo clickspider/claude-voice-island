@@ -1,0 +1,24 @@
+# Environment
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Generated artifacts
+icon.icns
+icon_1024.png
+
+# Anything personal. Settings and logs live in ~/Library, but an older checkout
+# may still have these next to the code, and neither belongs in a commit: the
+# config holds the id of a real chat, and the log holds what you said out loud.
+config.json
+mcp_approver.json
+*.log
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+
+# macOS
+.DS_Store

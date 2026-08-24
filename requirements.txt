@@ -1,0 +1,11 @@
+# Pinned on purpose. This is an application, not a library, so an install a year
+# from now should behave like the install that was tested.
+#
+# Only direct dependencies are listed. Everything else arrives underneath these.
+edge-tts==7.2.8
+faster-whisper==1.2.1
+numpy==2.4.6
+pyobjc-core==12.2.1
+pyobjc-framework-ApplicationServices==12.2.1
+pyobjc-framework-Cocoa==12.2.1
+sounddevice==0.5.5
