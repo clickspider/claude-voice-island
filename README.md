@@ -11,9 +11,11 @@ Push-to-talk voice control for Claude Code, living inside the black notch of a M
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-black.svg)
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-black.svg)
 
-</div>
+<br>
 
 https://github.com/user-attachments/assets/247b616d-bab8-422d-b926-dcdbf40e0287
+
+</div>
 
 - **It resumes a real chat.** Same session id, same project directory, same history. Not a fresh assistant that knows nothing about your work.
 - **No API key.** It drives the `claude` command you already have, so it runs on your subscription and costs nothing extra.
@@ -117,6 +119,17 @@ This app provides none of them.
 You need macOS 13 or newer, Python 3.11 or newer, and
 [Claude Code](https://claude.com/claude-code) installed and signed in.
 
+Paste this into Claude Code and let it do the whole thing:
+
+```text
+Clone https://github.com/clickspider/claude-voice-island into ~/claude-voice-island,
+run ./scripts/setup.sh, then start it with ./start.command. Read the README first
+and tell me which macOS permissions I will be asked for and why, before you run
+anything. Stop and show me the command if any step fails.
+```
+
+Or do it by hand, which is four lines:
+
 ```bash
 git clone https://github.com/clickspider/claude-voice-island.git
 cd claude-voice-island
@@ -124,7 +137,7 @@ cd claude-voice-island
 ./start.command
 ```
 
-Or build a real app you can double-click and add to your login items:
+Either way, build a double-clickable app when you want it in your login items:
 
 ```bash
 ./scripts/make_app.sh      # creates ~/Applications/Claude Voice Island.app
@@ -134,11 +147,6 @@ The first time you hold to talk, macOS asks for microphone access. If you want a
 push-to-talk key rather than the mouse, it asks for Accessibility too, because
 watching a key outside your own app is exactly the kind of thing it should ask
 about.
-
-Rather not do it yourself? Paste this into Claude Code:
-
-> Set up github.com/clickspider/claude-voice-island on my Mac and walk me
-> through the permissions.
 
 ## What leaves your Mac
 
@@ -286,6 +294,28 @@ settings, a microphone, or the network.
 Pull requests welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 </details>
+
+## Other harnesses
+
+Today it speaks Claude Code, and nothing above the harness has to. The notch
+window, push-to-talk, local transcription, the voices, the activity list and the
+approval dialog are all indifferent to what is on the other end.
+
+Three files know about Claude specifically, and they are small:
+
+`claude.py` builds the argv for one turn and reads a stream of JSON events.
+`sessions.py` finds resumable chats by reading `~/.claude/projects/*.jsonl`.
+`approver.py` answers permission questions over MCP, which is how Claude Code asks them.
+
+So an adapter for another tool needs four things: list resumable sessions, build
+a command for one turn, turn that command's output into a stream of text, tool
+calls and tool results, and say how that harness asks permission, if it asks at
+all.
+
+If you want this for Codex, Gemini CLI, Aider, opencode or anything else, say so
+in [issue #3](https://github.com/clickspider/claude-voice-island/issues/3). The
+first adapter is the one that sets the shape of the interface, so opinions on
+that are worth more than votes.
 
 ## Limits
 
