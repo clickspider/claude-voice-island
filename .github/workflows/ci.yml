@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# This job reads the checkout and nothing else. Said out loud so a pull request
+# from a fork cannot borrow a token that can write to the repository.
+permissions:
+  contents: read
+
 jobs:
   check:
     # macOS only. Half of this is AppKit, so there is nothing meaningful to run

@@ -3,6 +3,7 @@ modes matter more than its happy path. Everything here checks that it says no.""
 
 from __future__ import annotations
 
+import io
 import json
 
 from voiceisland import approver
@@ -97,3 +98,61 @@ def test_an_unknown_method_gets_a_json_rpc_error(capsys):
 def test_a_notification_gets_no_reply(capsys):
     approver.handle({"jsonrpc": "2.0", "method": "notifications/initialized"})
     assert _responses(capsys) == []
+
+
+def _feed(monkeypatch, *messages):
+    """Run the loop over a fixed list of messages instead of real stdin."""
+    monkeypatch.setattr(
+        approver.sys, "stdin",
+        io.StringIO("".join(json.dumps(message) + "\n" for message in messages)),
+    )
+    approver.main()
+
+
+def test_a_crash_while_asking_still_answers_with_a_deny(capsys, monkeypatch):
+    """A handler that falls over must not leave the run hanging.
+
+    Claude Code blocks on the id it sent. Logging the crash and moving on left
+    that request unanswered forever: no dialog, no denial, just a turn that
+    stopped. Surviving the exception is only half of it.
+    """
+    def explode(**_kwargs):
+        raise RuntimeError("no window server")
+
+    monkeypatch.setattr(approver, "ask_yes_no", explode)
+    _feed(monkeypatch, {
+        "jsonrpc": "2.0", "id": 9, "method": "tools/call",
+        "params": {"arguments": {"tool_name": "Bash", "input": {"command": "rm -rf /"}}},
+    })
+    answered = _responses(capsys)
+    assert len(answered) == 1
+    assert json.loads(answered[0]["result"]["content"][0]["text"])["behavior"] == "deny"
+
+
+def test_a_crash_on_anything_else_comes_back_as_an_error(capsys, monkeypatch):
+    def explode(_message):
+        raise RuntimeError("broken")
+
+    monkeypatch.setattr(approver, "handle", explode)
+    _feed(monkeypatch, {"jsonrpc": "2.0", "id": 10, "method": "tools/list"})
+    assert _responses(capsys)[0]["error"]["code"] == -32603
+
+
+def test_a_crash_on_a_notification_answers_nothing(capsys, monkeypatch):
+    def explode(_message):
+        raise RuntimeError("broken")
+
+    monkeypatch.setattr(approver, "handle", explode)
+    _feed(monkeypatch, {"jsonrpc": "2.0", "method": "notifications/initialized"})
+    assert _responses(capsys) == []
+
+
+def test_json_that_is_not_an_object_does_not_stop_the_loop(capsys, monkeypatch):
+    monkeypatch.setattr(
+        approver.sys, "stdin",
+        io.StringIO('[1, 2]\nnot json at all\n'
+                    + json.dumps({"jsonrpc": "2.0", "id": 11, "method": "ping"}) + "\n"),
+    )
+    approver.main()
+    answered = _responses(capsys)
+    assert len(answered) == 1 and answered[0]["id"] == 11

@@ -24,6 +24,11 @@ OSASCRIPT = "/usr/bin/osascript"
 
 # Runs the dialog with all values taken from argv, so nothing is interpolated
 # into the script text.
+#
+# The dialog's answer is bound to a name rather than read from AppleScript's
+# implicit `result`. Inside an `on run` handler `result` is not reliably set, and
+# reading it raises "The variable result is not defined", which this code treated
+# as a failed dialog and therefore a no. Every click of Allow was a deny.
 _SCRIPT = """
 on run argv
     set theTitle to item 1 of argv
@@ -31,11 +36,11 @@ on run argv
     set denyLabel to item 3 of argv
     set allowLabel to item 4 of argv
     set limit to (item 5 of argv) as integer
-    display dialog theBody with title theTitle ¬
+    set answer to display dialog theBody with title theTitle ¬
         buttons {denyLabel, allowLabel} default button denyLabel ¬
         with icon caution giving up after limit
-    if gave up of result then return "__timeout__"
-    return button returned of result
+    if gave up of answer then return "__timeout__"
+    return button returned of answer
 end run
 """
 

@@ -77,3 +77,16 @@ def test_osascript_is_called_by_absolute_path(monkeypatch):
     monkeypatch.setattr(subprocess, "run", run)
     dialogs.ask_yes_no("t", "b")
     assert captured["binary"] == "/usr/bin/osascript"
+
+
+def test_allow_is_read_from_a_named_variable_not_applescript_result(monkeypatch):
+    """The script must bind the dialog answer to a name.
+
+    AppleScript's implicit `result` is not reliably set inside an `on run`
+    handler; reading it fails with "The variable result is not defined", which
+    this module treats as a failed dialog and therefore a deny. Every click of
+    Allow was silently a deny.
+    """
+    assert "set answer to display dialog" in dialogs._SCRIPT
+    assert "of answer" in dialogs._SCRIPT
+    assert "of result" not in dialogs._SCRIPT

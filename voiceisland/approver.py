@@ -138,6 +138,28 @@ def handle(message: dict) -> None:
         _error(request_id, -32601, f"method not found: {method}")
 
 
+def _fail_closed(message: dict) -> None:
+    """Answer a request whose handler crashed, rather than leaving it hanging.
+
+    Surviving the crash is not enough on its own. Claude Code is blocked on this
+    id, and a permission question that never comes back stops the turn dead
+    instead of denying it: no dialog, no error, just a run that sits there until
+    something else times it out. So a handler that fell over still produces the
+    only answer it is safe to give.
+    """
+    request_id = message.get("id")
+    if request_id is None:
+        return  # a notification was never waiting for an answer
+    if message.get("method") == "tools/call":
+        denial = json.dumps({
+            "behavior": "deny",
+            "message": "The approver failed, so this was denied.",
+        })
+        _reply(request_id, {"content": [{"type": "text", "text": denial}]})
+    else:
+        _error(request_id, -32603, "approver failed")
+
+
 def main() -> None:
     _log("ready")
     for line in sys.stdin:
@@ -149,12 +171,18 @@ def main() -> None:
         except ValueError:
             _log("ignoring malformed line")
             continue
+        if not isinstance(message, dict):
+            # Valid JSON, but nothing that can carry a method or an id.
+            _log("ignoring a line that is not a JSON object")
+            continue
         try:
             handle(message)
         except Exception as exc:  # noqa: BLE001
             # A crash here would leave Claude Code waiting on a permission answer
-            # that never comes, so the loop survives anything one message does.
+            # that never comes, so the loop survives anything one message does
+            # and the message it was in the middle of still gets an answer.
             _log(f"handler error: {exc!r}")
+            _fail_closed(message)
 
 
 if __name__ == "__main__":

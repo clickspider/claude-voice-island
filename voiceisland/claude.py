@@ -123,6 +123,16 @@ def build_command(session_id: str, text: str, permissions: str, safe_tools: list
         "auto"    no dialogs at all. Claude runs anything it decides to run.
         "ask"     no approval route is offered, so anything needing approval is
                   refused and Claude works with what it already has.
+
+    Every mode states its permission mode explicitly. Claude Code reads a default
+    mode from the user's own settings.json, and a machine set to "auto" there
+    skips the approver without a word: it connects, lists its tool, and is never
+    called. Saying nothing here meant inheriting whatever that file happened to
+    say, which turned both careful modes into no mode at all.
+
+    Anything that is not one of the three names is treated as "prompt", because
+    the alternative is that hole again: config.json is a file people hand-edit,
+    and a typo there must not be the thing that decides whether you get asked.
     """
     command = [
         resolve_binary(),
@@ -134,8 +144,19 @@ def build_command(session_id: str, text: str, permissions: str, safe_tools: list
     ]
     if permissions == "auto":
         command.append("--dangerously-skip-permissions")
-    elif permissions == "prompt":
+    elif permissions == "ask":
+        # Refuse anything that needs approval, without a dialog, by offering no
+        # approval route and a mode that denies rather than asks.
+        command += ["--permission-mode", "dontAsk"]
+        if safe_tools:
+            command += ["--allowedTools", *safe_tools]
+    else:
+        # "prompt", and anything unrecognised, which lands here rather than
+        # falling out of the bottom with no flags at all.
         command += [
+            # "default" is the mode that actually asks. Without it the approver
+            # below is decoration.
+            "--permission-mode", "default",
             "--mcp-config", str(mcp_config_path()),
             "--permission-prompt-tool", APPROVER_TOOL,
         ]

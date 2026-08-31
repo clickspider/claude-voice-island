@@ -40,6 +40,38 @@ def test_prompt_mode_routes_approval_through_the_approver():
     assert "--dangerously-skip-permissions" not in command
 
 
+def test_prompt_mode_states_the_permission_mode_instead_of_inheriting_it():
+    """The approver is only consulted in a mode that asks.
+
+    Claude Code takes a default mode from the user's own settings.json. On a
+    machine set to "auto" it connects to the approver, lists its tool, and never
+    calls it, so every action runs unannounced. Saying nothing here is what made
+    the whole approval gate decorative.
+    """
+    command = build("prompt")
+    assert "--permission-mode" in command
+    assert command[command.index("--permission-mode") + 1] == "default"
+
+
+def test_ask_mode_refuses_rather_than_inheriting_whatever_is_configured():
+    """"Answer only, no actions" has to actually deny.
+
+    It used to add no flags at all, which meant it inherited the machine default.
+    The mode advertised as the most restrictive was the least restrictive.
+    """
+    command = build("ask")
+    assert command[command.index("--permission-mode") + 1] == "dontAsk"
+    assert "--permission-prompt-tool" not in command
+    assert "--dangerously-skip-permissions" not in command
+
+
+@pytest.mark.parametrize("mode", ["prompt", "auto", "ask"])
+def test_every_mode_says_what_it_wants_out_loud(mode):
+    """No mode may leave the decision to a config file this app does not own."""
+    command = build(mode)
+    assert "--permission-mode" in command or "--dangerously-skip-permissions" in command
+
+
 def test_prompt_mode_pre_approves_only_the_listed_tools():
     command = build("prompt", safe_tools=["Read", "Grep"])
     index = command.index("--allowedTools")
@@ -161,3 +193,19 @@ def test_a_failure_quotes_the_last_line_of_the_error():
 
 def test_a_silent_failure_still_says_something():
     assert claude._failure_text(1, "")
+
+
+def test_an_unrecognised_mode_asks_rather_than_inheriting(monkeypatch):
+    """A mode nobody recognises must land on the careful branch.
+
+    config.json is hand-edited, and every mode used to be an explicit `elif`
+    with nothing at the bottom, so "Prompt", "propmt", or a value written by a
+    later version fell straight through and added no flags at all. That is the
+    same hole the explicit modes were added to close: no flags means Claude Code
+    reads permissions.defaultMode from the user's own settings.json instead.
+    """
+    for mode in ("propmt", "Prompt", "", "plan", None):
+        command = claude.build_command("", "hello", mode, ["Grep"])
+        assert command[command.index("--permission-mode") + 1] == "default"
+        assert command[command.index("--permission-prompt-tool") + 1] == claude.APPROVER_TOOL
+        assert "--dangerously-skip-permissions" not in command
