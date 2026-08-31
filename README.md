@@ -1,65 +1,118 @@
+<div align="center">
+
 # Claude Voice Island
+
+### Hold the notch. Talk. Let go. Claude answers out loud.
+
+Push-to-talk voice control for Claude Code, living inside the black notch of a MacBook.
 
 [![CI](https://github.com/clickspider/claude-voice-island/actions/workflows/ci.yml/badge.svg)](https://github.com/clickspider/claude-voice-island/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
+![macOS 13+](https://img.shields.io/badge/macOS-13%2B-black.svg)
+![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-black.svg)
 
-Hold the notch. Talk. Let go. Claude answers out loud.
+</div>
 
-It's a push-to-talk button that lives inside the black cutout at the top of a
-MacBook screen. Press and hold it, say what you want, release. Your speech gets
-transcribed on your own machine, sent into a real Claude Code chat with all of
-its history, and the answer comes back in a voice while you keep doing whatever
-you were doing.
+https://github.com/user-attachments/assets/247b616d-bab8-422d-b926-dcdbf40e0287
 
-```
-  ╭──────────────────────────────╮
-  │ ●  refactor the parser     ⌄ │   the pill, open
-  ╰──────────────────────────────╯
+- **It resumes a real chat.** Same session id, same project directory, same history. Not a fresh assistant that knows nothing about your work.
+- **No API key.** It drives the `claude` command you already have, so it runs on your subscription and costs nothing extra.
+- **Your voice stays on your Mac.** faster-whisper transcribes locally, and the recording is never uploaded.
+- **It lives in the notch, not near it.** Idle, the window is the size of the physical cutout and filled with black.
 
-     grey idle · red listening · amber working · green speaking
-```
+## Why I built this
 
-When nothing's happening the window shrinks to exactly the size of the physical
-notch and fills it with black, so it disappears into the hardware. Move your
-pointer up there and it grows back out.
+I don't like reading. I don't like typing much either. I like talking. I take in
+more from one minute of somebody explaining a thing than from twenty minutes of
+reading about it, and I can say a thought out loud long before I could type it.
 
-No API key. It drives the `claude` command you already have, so it runs on your
-Claude Code subscription and costs nothing extra.
+Almost every tool assumes the opposite: read this, type that, leave the file
+you're in, find the terminal, type it out, come back with your train of thought
+gone. So I built one that works the way I do.
 
-## Why I built it
-
-I kept losing my place. Half the questions I ask Claude while I'm working are
-one sentence long, and typing a one sentence question means leaving the file I'm
-reading, finding the terminal, typing it out, waiting, and coming back with the
-thread of what I was doing already gone.
-
-Voice fixes that, but only if it talks to the session that already knows what
-I'm working on. A voice assistant that starts a fresh conversation every time is
-useless here. So it resumes the actual chat, in the actual project directory,
-with the actual history. That's why the picker lists your real chats by the
-first thing you typed in them, instead of by a UUID.
-
-The notch was the other half. There's a strip of dead black glass at the top of
-every modern MacBook, and everything I tried that used it was a floating panel
-sitting near it rather than in it.
-
-One thing I didn't expect: the first working version killed the whole app if you
-pressed the button twice quickly. PortAudio runs the microphone callback on its
-own thread, and closing a stream out from under that thread doesn't raise an
-exception, it segfaults the process. That one took me a while. It's why every
-stream now waits for the previous one to finish closing before it opens.
+Voice only helps if it talks to the session that already knows what you're
+working on, so it resumes the real chat, in its own directory, with its history.
+The notch was the other half: every tool I tried that used it was a floating
+panel sitting near it rather than in it.
 
 ## What people use it for
 
-- Asking about the code on screen without leaving the code on screen.
-- Thinking out loud. Explaining a problem to something that answers back is
-  faster than writing the problem down.
-- Hands busy. Sketching, wiring something up, holding coffee, walking around.
-- Long agent runs, with **Say each action out loud** turned on, so you hear when
-  it needs you instead of watching a terminal.
-- Typing less on days when typing hurts.
+<table>
+<tr>
+<td width="33%" valign="top">
 
-## Install
+**Code**
+
+<img src="docs/pill-listening.png" alt="The pill listening, red level meter" width="100%" />
+
+Ask about the file you're looking at without leaving the file you're looking at.
+
+</td>
+<td width="33%" valign="top">
+
+**Email**
+
+<img src="docs/pill-tool-call.png" alt="The pill running claude_ai_Gmail" width="100%" />
+
+Have the morning's mail read to you, and dictate the replies.
+
+</td>
+<td width="33%" valign="top">
+
+**Calendar**
+
+<img src="docs/pill-calendar.png" alt="The pill saying it made a demo event" width="100%" />
+
+Check what's on today, and make an event by saying it.
+
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+
+**Long agent runs**
+
+<img src="docs/activity-log.png" alt="The activity list: a question, tool calls, the answer" width="100%" />
+
+With **Say each action out loud** on, you hear when it needs you.
+
+</td>
+<td width="33%" valign="top">
+
+**The web**
+
+Have an article fetched and summarised while you keep doing whatever you were
+doing.
+
+</td>
+<td width="33%" valign="top">
+
+**Thinking out loud**
+
+Walking, sketching, hands busy. Explaining a problem to something that answers
+back is faster than writing it down.
+
+</td>
+</tr>
+</table>
+
+Email, calendar and web run on whatever your own Claude Code can already reach.
+This app provides none of them.
+
+## Features
+
+| Setting | What it does |
+|---|---|
+| **Hands-free (keep listening)** | Sends when you stop talking and reopens the microphone after Claude finishes. A conversation with nothing to hold. |
+| **Push-to-talk key** | Option, Control or Command, held from any app. Or mouse only: hold the pill. |
+| **Voice** | Five voices: Andrew, Brian, Ava, Emma, Ryan. |
+| **Speech engine** | Microsoft neural voices, or the macOS voice offline. |
+| **What Claude may do** | Ask me on screen, answer only, or run anything. See [Permissions](#permissions). |
+| **Say each action out loud** | Speaks each tool call as it happens instead of you reading them. |
+| **Hide chat names (screen sharing)** | Replaces the names in the picker with a position, four characters of the id, and how long ago you used it. |
+| **Start at login** | Installs a launch agent. |
+
+## Quick start
 
 You need macOS 13 or newer, Python 3.11 or newer, and
 [Claude Code](https://claude.com/claude-code) installed and signed in.
@@ -68,83 +121,24 @@ You need macOS 13 or newer, Python 3.11 or newer, and
 git clone https://github.com/clickspider/claude-voice-island.git
 cd claude-voice-island
 ./scripts/setup.sh
-```
-
-Then start it:
-
-```bash
 ./start.command
 ```
 
 Or build a real app you can double-click and add to your login items:
 
 ```bash
-./scripts/make_app.sh          # creates ~/Applications/Claude Voice Island.app
+./scripts/make_app.sh      # creates ~/Applications/Claude Voice Island.app
 ```
 
-The first time you hold to talk, macOS asks for microphone access. Allow it, then
-hold again. If you miss the prompt it's in System Settings, Privacy and Security,
-Microphone.
+The first time you hold to talk, macOS asks for microphone access. If you want a
+push-to-talk key rather than the mouse, it asks for Accessibility too, because
+watching a key outside your own app is exactly the kind of thing it should ask
+about.
 
-## Using it
+Rather not do it yourself? Paste this into Claude Code:
 
-| What you do | What happens |
-|---|---|
-| Hold the pill, talk, release | The turn runs |
-| Tap while it's speaking | It stops mid-sentence |
-| Hold while it's speaking | It stops and listens to you instead |
-| Click the ⌄ | Pick a chat, start a new one, change settings |
-| Hover while it works | The activity list opens under the pill |
-
-Prefer a key to a click? Settings, **Push-to-talk key** binds Option, Control or
-Command as a hold-to-talk key that works from any app. macOS asks for
-Accessibility permission the first time, because watching a key outside your own
-app is exactly the kind of thing it should ask about.
-
-**Hands-free** keeps the microphone open, sends when you stop talking, and
-reopens it after Claude finishes, so you can hold a conversation without
-touching anything.
-
-## How it works
-
-```
-  hold                release
-    │                     │
-    ▼                     ▼
- microphone ──► faster-whisper ──► claude -p --resume <chat>
-                 (on your Mac)              │
-                                            │ stream of events
-                                            ▼
-                                     the activity list
-                                            │
-                                            ▼
-                                   text to speech ──► out loud
-```
-
-Four things worth knowing.
-
-**It resumes real chats.** Claude Code stores every session as a JSONL file
-under `~/.claude/projects/`. Reading the head of one gives you the working
-directory and the first thing you typed, which is how the menu can show "fix the
-login bug" instead of a UUID. Pick one, talk, and it runs
-`claude -p --resume <id>` inside that project directory.
-
-**Nothing runs without you saying yes.** By default the app starts a small MCP
-server of its own and hands Claude Code
-`--permission-prompt-tool mcp__approver__approval_prompt`, so every action it
-wants to take becomes a dialog on your screen showing the actual command before
-anything happens. That server is about a hundred and fifty lines with no
-dependencies, on purpose. The thing whose whole job is saying no should be small
-enough to read in one sitting. See [SECURITY.md](SECURITY.md).
-
-**You can watch it work.** The run gets read as a stream, so each tool call
-becomes a row in the activity list as it happens: `Run: pytest -q`,
-`Edit parser.py`, `Browsing the web`. Turn on **Say each action out loud** and
-you hear those instead of reading them.
-
-**It gets out of the way.** While closed, the window ignores mouse events
-entirely, so the app underneath behaves as if it isn't there. It only takes
-clicks once your pointer is actually near it, or while a turn is running.
+> Set up github.com/clickspider/claude-voice-island on my Mac and walk me
+> through the permissions.
 
 ## What leaves your Mac
 
@@ -160,35 +154,104 @@ Being precise about this, because "local" is a word people stretch.
 The default is the Microsoft voice because it sounds far better. If you'd rather
 nothing left the machine at all, Settings, **Speech engine**, macOS voice.
 
-What you say doesn't get written to the log unless you turn on
-`log_transcripts`. The log records lengths and timings instead. Settings live in
-`~/Library/Application Support/ClaudeVoiceIsland/`, logs in
-`~/Library/Logs/ClaudeVoiceIsland/`, and neither one is inside this repository,
-so a clone never collects anything personal.
+What you say isn't written to the log unless you turn on `log_transcripts`.
+Settings and logs live under `~/Library/`, not in this repository, so a clone
+never collects anything personal.
 
-## Settings
+## Permissions
 
-Everything in the ⌄ menu writes to
-`~/Library/Application Support/ClaudeVoiceIsland/config.json`. A few things are
-only in the file:
+The default is **Ask me on screen**. The app runs a small MCP server of its own,
+under two hundred lines with no dependencies, and hands Claude Code
+`--permission-prompt-tool`, so an action becomes a dialog showing the actual
+command. It fails closed: a timeout, an Escape, a dialog that can't open, all
+mean deny.
+
+Not everything reaches that dialog, and that's the part worth knowing before you
+lean on it. Claude Code decides some calls are harmless and runs them without
+consulting the permission tool at all. Measured on CLI 2.1.251, with the approver
+denying everything:
+
+| The call | Reached the dialog? |
+|---|---|
+| `Bash: touch <a file>` | Yes, and the denial held: no file. |
+| `Bash: echo hello` | No. It just ran. |
+| `Read` a file inside the chat's working directory | No. It just ran, and the contents came back. |
+| `Read /etc/hosts`, outside that directory | Yes, and the denial held. |
+
+Things that change something, and things that reach outside the chat's directory,
+come to you. Read-only pokes inside the project don't. Which directory you point
+a chat at does more work than the permission mode does, so it's worth a glance
+before a long session.
+
+The other two modes. **Answer only, no actions** runs the CLI in `dontAsk`, which
+refuses anything needing permission, though `safe_tools` still runs. **Run
+anything, never ask** passes `--dangerously-skip-permissions`, sits behind a
+confirmation, and says so on the pill while it's on. Anything else in that field
+is treated as `prompt`.
+
+The full account, and what none of this protects against, is in
+[SECURITY.md](SECURITY.md). Read that before you point this at something that
+matters.
+
+<details>
+<summary><b>How it works</b></summary>
+
+```
+  hold                release
+    │                     │
+    ▼                     ▼
+ microphone ──► faster-whisper ──► claude -p --resume <chat>
+                 (on your Mac)              │
+                                            │ stream of events
+                                            ▼
+                                     the activity list
+                                            │
+                                            ▼
+                                   text to speech ──► out loud
+```
+
+Claude Code stores every session as a JSONL file under `~/.claude/projects/`. The
+head of one gives the working directory and the first thing you typed, which is
+how the menu shows "fix the login bug" instead of a UUID. The run is then read as
+a stream, so each tool call becomes a row as it happens: `Run: pytest -q`,
+`Edit parser.py`, `Browsing the web`. While closed, the window ignores mouse
+events entirely, so the app underneath behaves as if it isn't there.
+
+| What you do | What happens |
+|---|---|
+| Hold the pill, talk, release | The turn runs |
+| Tap while it's speaking | It stops mid-sentence |
+| Hold while it's speaking | It stops and listens to you instead |
+| Click the ⌄ | Pick a chat, start a new one, change settings |
+| Hover while it works | The activity list opens under the pill |
+
+Grey idle, red listening, amber working, green speaking.
+
+</details>
+
+<details>
+<summary><b>Settings that are only in the file</b></summary>
+
+The ⌄ menu writes to
+`~/Library/Application Support/ClaudeVoiceIsland/config.json`. Three keys have no
+menu item:
 
 | Key | Default | What it does |
 |---|---|---|
 | `whisper_model` | `base.en` | `small.en` is more accurate and slower |
-| `safe_tools` | `Glob, Grep, TodoWrite` | Tools that run without a dialog. `Read` isn't on it on purpose, see [SECURITY.md](SECURITY.md) |
+| `safe_tools` | `["Glob", "Grep", "TodoWrite"]` | Tools pre-approved with `--allowedTools`, so they run without a dialog |
 | `log_transcripts` | `false` | Write what you said and what Claude replied to the log |
 
-## Limits
+`Read` is not on that list. What that buys you: a dialog for reads **outside** the
+working directory, and nothing for reads inside it, because Claude Code has
+already decided those are fine. If the project directory holds a `.env` you care
+about, what's protecting it is which directory you pointed the chat at, not this
+list.
 
-- macOS only, and the notch behaviour needs a Mac that has one. On any other
-  screen it becomes a small pill you can drag wherever you want.
-- Replies get read in full, so it's built for short spoken turns rather than long
-  explanations. Claude is asked to answer in two sentences.
-- Every turn starts a `claude` process, so there's a few seconds of thinking
-  before it speaks.
-- English only, because it uses the English speech model.
+</details>
 
-## Layout
+<details>
+<summary><b>Layout and development</b></summary>
 
 ```
 voiceisland/
@@ -210,19 +273,29 @@ voiceisland/
     symbols.py    cached, tinted SF Symbols
 ```
 
-## Development
-
 ```bash
-./venv/bin/python -m pytest      # 94 tests, no microphone needed
+./venv/bin/python -m pytest      # 116 tests, no microphone needed
 ./venv/bin/ruff check .
 ```
 
-The tests cover the parts where being wrong is expensive: what the approver does
-when a dialog fails, what argv gets built for each permission mode, how chat
-files are parsed, and what text the speech engine is handed. Nothing there
-touches your real settings, a microphone, or the network.
+They cover the parts where being wrong is expensive: what the approver does when a
+dialog fails, what argv gets built for each permission mode, how chat files are
+parsed, and what the speech engine is handed. None of it touches your real
+settings, a microphone, or the network.
 
 Pull requests welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+</details>
+
+## Limits
+
+- macOS only, and the notch behaviour needs a Mac that has one. On any other
+  screen it becomes a small pill you can drag wherever you want.
+- Replies get read in full, so it's built for short spoken turns. Claude is asked
+  to answer in two sentences.
+- Every turn starts a `claude` process, so there's a few seconds of thinking
+  before it speaks.
+- English only, because it uses the English speech model.
 
 ## Credit
 
@@ -230,8 +303,8 @@ The notch shape follows the approach taken by
 [Atoll](https://github.com/Renset/Atoll),
 [boring.notch](https://github.com/TheBoredTeam/boring.notch) and
 [DynamicNotchKit](https://github.com/MrKai77/DynamicNotchKit). Concave shoulders
-flaring out to full width, straight sides, rounded bottom. Get those curves
-wrong and it reads as a black rectangle taped under the camera.
+flaring out to full width, straight sides, rounded bottom. Get those curves wrong
+and it reads as a black rectangle taped under the camera.
 
 Speech recognition is [faster-whisper](https://github.com/SYSTRAN/faster-whisper).
 Voices are [edge-tts](https://github.com/rany2/edge-tts).
