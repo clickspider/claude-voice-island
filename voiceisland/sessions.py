@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,6 +38,10 @@ class Session:
     project: str
     title: str
     mtime: float
+    # Position in the recency-ordered list, 1 for the most recent. Only shown
+    # while titles are hidden, where several chats can share the same "19m ago"
+    # and the order is otherwise impossible to read.
+    rank: int = 0
 
     @property
     def name(self) -> str:
@@ -47,13 +52,58 @@ class Session:
         """True when the chat runs in a project directory rather than at home."""
         return bool(self.cwd) and self.cwd != _HOME
 
-    def label(self) -> str:
+    def label(self, private: bool = False) -> str:
         """The picker line: the chat's own name, plus the project when it adds anything.
 
         Chats started from the home directory get a project name that is just the
         username, which tells you nothing, so it is left off.
+
+        With `private` set, nothing you typed is shown. See private_label.
         """
+        if private:
+            return self.private_label()
         return f"{self.name}   ·  {self.project}" if self.is_repo else self.name
+
+    def private_label(self) -> str:
+        """A name for this chat that gives away nothing you typed.
+
+        The ordinary label is the first thing you said to the chat, because that
+        is what you recognise it by. That works right up until someone else is
+        looking at your screen, at which point the picker is a list of your
+        private business.
+
+        Two things are safe to show. How long ago you last spoke to a chat, which
+        is how people actually find one in a list already sorted by recency, and
+        a short slice of the session id, which is stable, unique enough to tell
+        two chats apart, and means nothing to anyone.
+
+        The project name is deliberately left out. It reads as harmless and is
+        not: a directory can be named after a person, a case, or a diagnosis.
+        """
+        if not self.id:
+            return "New chat"
+        position = f"{self.rank}. " if self.rank else ""
+        if self.mtime <= 0:
+            # A chat started in this session has no file on disk yet, so an age
+            # would be invented rather than unknown.
+            return f"{position}Chat {self.id[:4]}"
+        return f"{position}Chat {self.id[:4]}   ·  {_age(self.mtime)}"
+
+
+def _age(mtime: float) -> str:
+    """How long ago, short enough to sit in a menu line."""
+    if mtime <= 0:
+        return "unknown"
+    seconds = max(0.0, time.time() - mtime)
+    if seconds < 60:
+        return "just now"
+    minutes = int(seconds // 60)
+    if minutes < 60:
+        return f"{minutes}m ago"
+    hours = minutes // 60
+    if hours < 24:
+        return f"{hours}h ago"
+    return f"{hours // 24}d ago"
 
 
 def list_sessions(limit: int = 25) -> list[Session]:
@@ -72,6 +122,7 @@ def list_sessions(limit: int = 25) -> list[Session]:
                 project=os.path.basename(cwd) if cwd else path.parent.name,
                 title=title or "(no prompt yet)",
                 mtime=mtime,
+                rank=len(found) + 1,
             )
         )
         if len(found) >= limit:

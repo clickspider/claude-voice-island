@@ -101,12 +101,19 @@ class _Channel:
         self.name = name
         self._lock = threading.Lock()
         self._process: subprocess.Popen | None = None
+        # Raised by stop(), lowered by the next run(). Stopping can only
+        # terminate a player that already exists, and with the edge voices the
+        # audio takes a network round trip first, so for most of a second every
+        # reply is un-interruptible unless the stop is remembered.
+        self._stopped = False
 
     def run(self, text: str) -> None:
         """Speak `text` and block until it finishes or is stopped."""
         text = for_speech(text)
         if not text:
             return
+        with self._lock:
+            self._stopped = False
         settings = config.load()
         engine = settings.get("tts_engine", "edge")
         voice = settings.get("voice", "en-US-AndrewNeural")
@@ -132,6 +139,10 @@ class _Channel:
 
     def _run_process(self, command: list[str]) -> None:
         with self._lock:
+            if self._stopped:
+                # You already cut this off while it was being synthesised.
+                # Playing it now would read out an answer you interrupted.
+                return
             self._process = subprocess.Popen(command)
             process = self._process
         try:
@@ -143,6 +154,7 @@ class _Channel:
 
     def stop(self) -> None:
         with self._lock:
+            self._stopped = True
             process = self._process
         if process is not None and process.poll() is None:
             try:

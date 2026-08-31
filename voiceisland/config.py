@@ -17,6 +17,7 @@ import json
 import logging
 import os
 import tempfile
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +38,13 @@ DEFAULTS: dict[str, Any] = {
     # is worth seeing before the file is opened. See SECURITY.md.
     "safe_tools": ["Glob", "Grep", "TodoWrite"],
     "narrate": False,              # speak a short phrase for each action taken
+    # Hide chat names, in the picker and on the pill. A chat is named after the
+    # first thing you said to it, which is the only way to recognise it and also
+    # the reason you cannot share your screen. Turn this on to demo, pair, or
+    # present. It hides the stored names, not the turn you are having right now:
+    # the pill still shows what it heard and what came back, and the activity
+    # list still shows the running turn. See sessions.Session.private_label.
+    "private_titles": False,
     "ptt": "off",                  # push-to-talk key: off | option | control | command
     "launch_at_login": False,
     "float_pos": None,             # [x, y] of the pill on a screen with no notch
@@ -44,6 +52,9 @@ DEFAULTS: dict[str, Any] = {
 }
 
 _log = logging.getLogger("voiceisland.config")
+
+# Held across the read, the merge and the write in save(). See save().
+_save_lock = threading.Lock()
 
 
 def _directory(*fallback: str) -> Path:
@@ -88,21 +99,30 @@ def save(updates: dict[str, Any]) -> None:
     Partial saves are the normal case: the menu writes one key at a time. Writing
     through a temporary file in the same directory means an interrupted write
     leaves the old config intact instead of a truncated one.
+
+    The lock is what makes "merge" true when two threads save at once. The menu
+    saves on the AppKit main thread while a voice turn saves the id of a brand
+    new chat from its worker, and two unsynchronised read-modify-writes lose one
+    of them. The file stays valid either way, which is what makes it easy to
+    miss: nothing looks broken, the chat you just started is simply not there.
     """
-    current = load()
-    current.update(updates)
-    target = config_path()
-    tmp_fd, tmp_name = tempfile.mkstemp(dir=str(target.parent), prefix=".config-", suffix=".json")
-    try:
-        with os.fdopen(tmp_fd, "w", encoding="utf-8") as fh:
-            json.dump(current, fh, indent=2, sort_keys=True)
-            fh.write("\n")
-            fh.flush()
-            os.fsync(fh.fileno())
-        os.replace(tmp_name, target)
-    except OSError:
-        _log.warning("config save failed", exc_info=True)
-        Path(tmp_name).unlink(missing_ok=True)
+    with _save_lock:
+        current = load()
+        current.update(updates)
+        target = config_path()
+        tmp_fd, tmp_name = tempfile.mkstemp(
+            dir=str(target.parent), prefix=".config-", suffix=".json"
+        )
+        try:
+            with os.fdopen(tmp_fd, "w", encoding="utf-8") as fh:
+                json.dump(current, fh, indent=2, sort_keys=True)
+                fh.write("\n")
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp_name, target)
+        except OSError:
+            _log.warning("config save failed", exc_info=True)
+            Path(tmp_name).unlink(missing_ok=True)
 
 
 def setup_logging() -> None:

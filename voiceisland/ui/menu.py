@@ -38,10 +38,13 @@ def build(view) -> NSMenu:
     menu = NSMenu.alloc().init()
     menu.setAutoenablesItems_(False)
 
+    private = bool(config.load().get("private_titles", False))
+
     _add(menu, view, "New chat", "newChat:", key="n")
     menu.addItem_(NSMenuItem.separatorItem())
     for session in view.sessions:
-        item = _add(menu, view, _shorten(session.label()), "selectSession:", value=session.id)
+        item = _add(menu, view, _shorten(session.label(private)), "selectSession:",
+                    value=session.id)
         if view.current and session.id == view.current.id:
             item.setState_(_CHECKED)
     menu.addItem_(NSMenuItem.separatorItem())
@@ -74,6 +77,10 @@ def _add_settings(menu: NSMenu, view) -> None:
     narrate = _add(submenu, view, "Say each action out loud", "toggleNarrate:")
     if view.narrate:
         narrate.setState_(_CHECKED)
+
+    private = _add(submenu, view, "Hide chat names (screen sharing)", "togglePrivateTitles:")
+    if settings.get("private_titles", False):
+        private.setState_(_CHECKED)
 
     if not view.notch_mode:
         _add(submenu, view, "Reset pill position", "resetPosition:")

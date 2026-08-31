@@ -75,11 +75,14 @@ def _check_claude_installed() -> bool:
         claude.resolve_binary()
         return True
     except claude.ClaudeNotFoundError:
+        # Both buttons quit: there is nothing to carry on to without the CLI. The
+        # body says so rather than leaving "OK" to imply otherwise.
         dialogs.ask_yes_no(
             title="Claude Voice Island",
             body=(
                 "The `claude` command was not found.\n\n"
-                "Install Claude Code and sign in, then start this again."
+                "Install Claude Code and sign in, then start this again.\n\n"
+                "Claude Voice Island will quit now."
             ),
             allow_label="OK",
             deny_label="Quit",

@@ -114,6 +114,7 @@ class PillView(NSView):
             return None
         self.state = "idle"
         self.status_text = ""
+        self.private_titles = False
         self.heard = ""
         self.reply = ""
         self.recorder = Recorder()
@@ -160,12 +161,20 @@ class PillView(NSView):
         self.current = next((s for s in self.sessions if s.id == saved), None) or (
             self.sessions[0] if self.sessions else None
         )
-        self.status_text = self.current.name if self.current else "no chats"
+        self.private_titles = bool(settings.get("private_titles", False))
+        self.status_text = self._current_label()
         self.narrate = bool(settings.get("narrate", False))
         self.permissions = settings.get("permissions", "prompt")
         self.ptt = settings.get("ptt", "off")
         self._install_key_monitor()
         self.setNeedsDisplay_(True)
+
+    @objc.python_method
+    def _current_label(self) -> str:
+        """What the pill calls the current chat, honouring private_titles."""
+        if self.current is None:
+            return "no chats"
+        return self.current.private_label() if self.private_titles else self.current.name
 
     @objc.python_method
     def attach(self, panel):
@@ -372,7 +381,7 @@ class PillView(NSView):
             return self.status_text or "Error"
         if not self.current:
             return "no chats · hold to talk"
-        name = _clip(self.current.name, 24)
+        name = _clip(self._current_label(), 24)
         if self.permissions == "auto":
             # Auto mode runs anything without asking, so it says so on the pill
             # rather than only in a menu you are not looking at.
@@ -383,7 +392,7 @@ class PillView(NSView):
 
     @objc.python_method
     def header_text(self) -> str:
-        name = _clip(self.current.name, 22) if self.current else "chat"
+        name = _clip(self._current_label(), 22) if self.current else "chat"
         phase = {
             "transcribing": "transcribing",
             "thinking": "working",
@@ -644,9 +653,13 @@ class PillView(NSView):
     @objc.python_method
     def _handsfree_stop(self):
         self.handsfree = False
-        if self.state == "speaking":
-            speech.stop_speaking()
-        elif self.state == "listening":
+        # Counting past the running turn abandons it. Without this, stopping
+        # while Claude is still thinking left the worker with a generation that
+        # still matched, so the answer arrived a minute later and read itself
+        # out loud, which is the opposite of what stopping means.
+        self.generation += 1
+        speech.stop_speaking()
+        if self.state == "listening":
             try:
                 self.recorder.stop()
             except Exception:  # noqa: BLE001
@@ -857,6 +870,17 @@ class PillView(NSView):
         if not self.narrate:
             speech.stop_narration()
         config.save({"narrate": self.narrate})
+
+    def togglePrivateTitles_(self, _sender):  # noqa: N802
+        """Show or hide what you typed, in the picker and on the pill.
+
+        Takes effect immediately, because the point of it is that someone is
+        already looking at your screen.
+        """
+        self.private_titles = not self.private_titles
+        config.save({"private_titles": self.private_titles})
+        self.status_text = self._current_label()
+        self.setNeedsDisplay_(True)
 
     def toggleHandsFree_(self, _sender):  # noqa: N802
         if self.handsfree:

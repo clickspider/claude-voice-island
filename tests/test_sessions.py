@@ -106,3 +106,50 @@ def test_the_project_name_is_dropped_for_chats_started_at_home():
     repo = sessions.Session(id="b", cwd="/Users/someone/code/app", project="app",
                             title="a question", mtime=0)
     assert "app" in repo.label()
+
+
+# ---- hiding what you typed ----------------------------------------------
+# The picker names every chat after the first thing you said to it, which is
+# also the reason you cannot share your screen while it is open. These check
+# that turning that off actually gives nothing away.
+
+
+def test_a_private_label_repeats_nothing_you_typed():
+    chat = sessions.Session(id="9f3c1d22-aaaa", cwd="/Users/x/lawsuit-marchetti",
+                            project="lawsuit-marchetti", title="draft the settlement offer",
+                            mtime=0, rank=2)
+    label = chat.private_label()
+    assert "settlement" not in label
+    # The project name is not safe either: a directory gets named after a person,
+    # a case, or a diagnosis just as often as after a repository.
+    assert "marchetti" not in label.lower()
+    assert "2." in label
+    assert "9f3c" in label
+
+
+def test_the_private_label_is_what_the_picker_asks_for():
+    chat = sessions.Session(id="abc123", cwd="/Users/x/app", project="app",
+                            title="medical results", mtime=0)
+    assert "medical" not in chat.label(private=True)
+    assert "medical" in chat.label(private=False)
+
+
+def test_a_chat_with_no_file_yet_does_not_invent_an_age():
+    chat = sessions.Session(id="abc123", cwd="", project="", title="x", mtime=0.0)
+    assert "ago" not in chat.private_label()
+
+
+def test_a_brand_new_chat_has_nothing_to_hide():
+    fresh = sessions.Session(id="", cwd="", project="", title="New chat", mtime=0.0)
+    assert fresh.private_label() == "New chat"
+
+
+def test_chats_are_ranked_so_a_hidden_list_is_still_readable(projects):
+    # Two chats touched in the same minute read as the same "19m ago", so the
+    # rank is the only thing telling them apart once the titles are gone.
+    for index in range(3):
+        write_chat(projects, "p", f"chat{index}", [user_message(f"prompt {index}")],
+                   mtime=1_000 + index)
+    found = sessions.list_sessions()
+    assert [chat.rank for chat in found] == [1, 2, 3]
+    assert found[0].id == "chat2"
