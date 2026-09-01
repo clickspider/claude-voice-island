@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem
+    url: https://github.com/clickspider/claude-voice-island/security/advisories/new
+    about: Do not open a public issue. Report it privately here.
+  - name: Question about using it
+    url: https://github.com/clickspider/claude-voice-island/discussions
+    about: Setup trouble and how-do-I questions go here, not in the issue tracker.

@@ -1,0 +1,69 @@
+name: Bug report
+description: Something behaves differently than the README says it does.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is a macOS-only app that draws in the notch and holds a microphone
+        permission. Most reports come down to one of those two, so the questions
+        below are aimed at telling them apart quickly.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, and what the app did instead of what you expected.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Started it with ...
+        2. Held the key for about two seconds
+        3. The pill did ...
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "14.5, on an M1 Pro with a notch"
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: Output of `./venv/bin/python --version`
+      placeholder: "3.12.4"
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: >
+        Run it with `VOICE_ISLAND_VERBOSE=1 ./venv/bin/python -m voiceisland` and
+        paste the part around the failure, or attach
+        `~/Library/Logs/ClaudeVoiceIsland/island.log`. Read it before you paste
+        it and take out anything you would not want public.
+      render: text
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checked first
+      options:
+        - label: I am on the latest main
+          required: true
+        - label: The app has microphone permission in System Settings
+          required: true

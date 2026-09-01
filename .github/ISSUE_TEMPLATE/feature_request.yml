@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest something the app should do that it does not.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is a small, deliberately narrow app: hold a key, talk to Claude,
+        hear the answer back. The most useful requests explain the moment you
+        were in when you wanted the thing, not the setting you want added.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What were you trying to do
+      description: The situation, before any solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you think should happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead
+      description: Workarounds, other tools, or why the current behaviour does not cover it.
+
+  - type: checkboxes
+    id: offer
+    attributes:
+      label: Would you build it
+      options:
+        - label: I would be up for opening a pull request for this

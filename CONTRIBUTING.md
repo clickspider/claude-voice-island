@@ -40,6 +40,30 @@ so they can be tested, and `tests/` shows the pattern.
 Changes to the drawing code are hard to test and get reviewed by looking at them.
 Say in the pull request what you checked by eye.
 
+## How a pull request gets merged
+
+`main` is protected, so nothing lands on it directly. The path is: branch, push,
+open a pull request, and it merges as a single squashed commit once the gates
+below are green.
+
+- CI has to pass on Python 3.11, 3.12 and 3.13. Those three checks are required,
+  not advisory, and a red one blocks the merge button.
+- CodeQL runs on every pull request. A new alert is worth a comment even if you
+  think it is a false positive.
+- The branch has to be up to date with `main` before it merges, which keeps the
+  history linear and means the commit that CI tested is the commit that lands.
+- One review from the code owner, and every review thread resolved. Pushing new
+  commits dismisses an approval, so the code that got read is the code that ships.
+
+If you opened the pull request from a fork, CI will sit and wait until a
+maintainer approves the run. That is not a comment on your change. Every job here
+runs on a macOS runner, which bills at ten times the Linux rate, so no fork gets
+to start one unattended.
+
+Small and focused merges quickly. A pull request that renames things, fixes a
+bug and adds a feature at once will get asked to split, because there is no way
+to accept a third of it.
+
 ## Things worth knowing before you change something
 
 **PyObjC method names are Objective-C selectors.** `drawRect_`, `mouseDown_`,

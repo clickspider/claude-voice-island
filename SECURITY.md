@@ -198,7 +198,16 @@ to this thing, not for the sentence you just said out loud in the room.
 
 ## Reporting something
 
-Open an issue at
-https://github.com/clickspider/claude-voice-island/issues. If it's a real
-vulnerability rather than a bug, say so in the title and leave out the details,
-and I'll get you somewhere private to send them.
+If it's a vulnerability, report it privately at
+https://github.com/clickspider/claude-voice-island/security/advisories/new. That
+form is only visible to me, so you can put the whole thing in it, working
+reproduction included, instead of writing around the details in public. Expect a
+first reply within a week; if you get nothing, open a plain issue saying only
+that you're waiting on an advisory and I'll pick it up.
+
+Please don't open a public issue for a vulnerability, and please give me a chance
+to ship a fix before you write it up somewhere else.
+
+Anything that isn't a vulnerability, a crash, a wrong pill, a permission prompt
+that shouldn't be there, goes in the ordinary issue tracker at
+https://github.com/clickspider/claude-voice-island/issues.
