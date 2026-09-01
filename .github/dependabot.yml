@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # The actions are pinned to commit SHAs, which is safe but goes stale
+  # silently. This is what notices.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    labels: [dependencies]
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: deps
+    labels: [dependencies]
+    groups:
+      # One pull request for the dev tooling instead of three. Ruff and pytest
+      # moving is not interesting enough to review separately.
+      dev-tooling:
+        patterns: ["ruff", "pytest*"]
